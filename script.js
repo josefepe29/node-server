@@ -1,11 +1,16 @@
 const readline = require('readline');
+const http = require('http')
 
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
+//Variables
+
 const tareas = [];
+
+//Funcion para listar tareas
 
 function listarTareas() {
   return new Promise((resolve) => {
@@ -20,6 +25,8 @@ function listarTareas() {
   });
 }
 
+//Funcion para agregar tareas
+
 function agregarTarea(descripcion) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -30,6 +37,8 @@ function agregarTarea(descripcion) {
     }, 4000)
   });
 }
+
+//Funcion para eliminar tareas
 
 function eliminarTarea(indice) {
   return new Promise((resolve) => {
@@ -46,6 +55,8 @@ function eliminarTarea(indice) {
   });
 }
 
+//Funcion para completar tareas
+
 function completarTarea(indice) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -56,9 +67,12 @@ function completarTarea(indice) {
       } else {
         console.log('Índice de tarea no válido.');
       }
+      resolve()
     },4000)
   })
 }
+
+//Funcion para realizar pregunta de accion
 
 function realizarPregunta() {
     
@@ -96,5 +110,20 @@ function realizarPregunta() {
 
 realizarPregunta()
 
+//Constantes servidor
 
+const host = 'localhost'
 
+const port = 8080
+
+const requestListener = (req, res) => {
+  res.writeHead(200)
+  res.write(JSON.stringify(tareas))
+  res.end()
+}
+
+const server = http.createServer(requestListener)
+
+server.listen(port, host, () => {
+  console.log(`Servidor activo en http://${host}:${port}`)
+})
