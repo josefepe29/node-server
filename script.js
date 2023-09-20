@@ -1,5 +1,4 @@
 const readline = require('readline');
-const http = require('http')
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -110,20 +109,4 @@ function realizarPregunta() {
 
 realizarPregunta()
 
-//Constantes servidor
 
-const host = 'localhost'
-
-const port = 8080
-
-const requestListener = (req, res) => {
-  res.writeHead(200)
-  res.write(JSON.stringify(tareas))
-  res.end()
-}
-
-const server = http.createServer(requestListener)
-
-server.listen(port, host, () => {
-  console.log(`Servidor activo en http://${host}:${port}`)
-})
