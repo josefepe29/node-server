@@ -1,4 +1,5 @@
 const readline = require('readline');
+const http = require('http')
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -6,6 +7,8 @@ const rl = readline.createInterface({
 });
 
 const tareas = [];
+
+//Funcion para listar tareas
 
 function listarTareas() {
   return new Promise((resolve) => {
@@ -20,16 +23,20 @@ function listarTareas() {
   });
 }
 
-function agregarTarea(descripcion) {
+//Funcion para agregar tareas
+
+function agregarTarea(descripcion,id) {
   return new Promise((resolve) => {
     setTimeout(() => {
-      tareas.push({ descripcion, estado: false });
+      tareas.push({ id, descripcion, estado: false });
       console.log('Tarea agregada correctamente.');
 
       resolve();
     }, 4000)
   });
 }
+
+//Funcion para eliminar tareas
 
 function eliminarTarea(indice) {
   return new Promise((resolve) => {
@@ -46,6 +53,8 @@ function eliminarTarea(indice) {
   });
 }
 
+//Funcion para completar tareas
+
 function completarTarea(indice) {
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -56,6 +65,7 @@ function completarTarea(indice) {
       } else {
         console.log('Índice de tarea no válido.');
       }
+      resolve()
     },4000)
   })
 }
@@ -68,9 +78,11 @@ function realizarPregunta() {
         realizarPregunta()
       } else if (accion === 'agregar') {
         rl.question('Ingrese la descripción: ', async (descripcion) => {
-          await agregarTarea(descripcion);
-          await listarTareas();
-          realizarPregunta()
+          rl.question('Ingrese el id: ', async (id) => {  
+            await agregarTarea(descripcion,id);
+            await listarTareas();
+            realizarPregunta()
+          })
         });
       } else if (accion === 'eliminar') {
         rl.question('Ingrese el número de la tarea que desea eliminar: ', async (indice) => {
@@ -96,5 +108,22 @@ function realizarPregunta() {
 
 realizarPregunta()
 
+//--------------------------------------------------------------------------------------------------------------------------
 
+//Constantes servidor
 
+const host = 'localhost'
+
+const port = 8080
+
+const requestListener = (req, res) => {
+  res.writeHead(200)
+  res.write(JSON.stringify(tareas))
+  res.end()
+}
+
+const server = http.createServer(requestListener)
+
+server.listen(port, host, () => {
+  console.log(`Servidor activo en http://${host}:${port}`)
+})
