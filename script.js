@@ -1,38 +1,42 @@
-const readline = require('readline');
-
 const rl = readline.createInterface({
   input: process.stdin,
   output: process.stdout
 });
 
-//Variables
-
 const tareas = [];
 
-//Funcion para listar tareas
+// Funcion para listar tareas
 
 function listarTareas() {
   return new Promise((resolve) => {
+    console.log('Lista de tareas:');
     setTimeout(() => {
-
-      console.log('Lista de tareas:');
       tareas.forEach((tarea, index) => {
         console.log(`${index + 1}. [${tarea.estado ? 'Completada' : 'Pendiente'}] - ${tarea.descripcion}`);
       });
-      resolve();
+      resolve('Lista de tareas: ');
     }, 4000)
   });
 }
 
 //Funcion para agregar tareas
 
-function agregarTarea(descripcion) {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      tareas.push({ descripcion, estado: false });
-      console.log('Tarea agregada correctamente.');
-
-      resolve();
+function agregarTarea(id, descripcion) {
+  
+    return new Promise((resolve,reject) => {
+      if (id === undefined || id === null || id.trim() === '' || id < 0 || id === 'number') {
+        reject(new Error ('El ID de la tarea no es válido'));
+        return;
+      }
+      
+      // Verificar si el ID ya existe en las tareas existentes
+      if (tareas.some((tarea) => tarea.id === id)) {
+        reject(new Error('El ID de la tarea ya existe'));
+        return;
+      }
+      setTimeout(() => {
+        tareas.push({ id, descripcion, estado: false });
+        resolve('Tarea agregada correctamente');
     }, 4000)
   });
 }
@@ -40,16 +44,15 @@ function agregarTarea(descripcion) {
 //Funcion para eliminar tareas
 
 function eliminarTarea(indice) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
+    if (indice === undefined || indice === null || indice.trim() === '' || indice < 0 || indice > tareas.length) {
+      reject(new Error ('El ID de la tarea no es válido'));
+      return;
+    }
+
     setTimeout(() => {
-      
-      if (indice >= 0 && indice < tareas.length) {
-        tareas.splice(indice, 1);
-        console.log('Tarea eliminada correctamente.');
-      } else {
-        console.log('Índice de tarea no válido.');
-      }
-      resolve();
+      tareas.splice(indice, 1);
+      resolve('Tarea eliminada correctamente');
     },4000)
   });
 }
@@ -57,56 +60,101 @@ function eliminarTarea(indice) {
 //Funcion para completar tareas
 
 function completarTarea(indice) {
-  return new Promise((resolve) => {
+  return new Promise((resolve,reject) => {
+
+    if (indice === undefined || indice === null || indice.trim() === '' || indice < 0 || indice > tareas.length) {
+      reject(new Error ('El ID de la tarea no es válido'));
+      return;
+    }
+
     setTimeout(() => {
-      
-      if (indice >= 0 && indice < tareas.length) {
+
         tareas[indice].estado = true;
         console.log('Tarea marcada como completada.');
-      } else {
-        console.log('Índice de tarea no válido.');
-      }
+      
       resolve()
     },4000)
   })
 }
 
-//Funcion para realizar pregunta de accion
+//Funcion para salir
+
+rl.on('close', () => {
+  console.log('¡Hasta luego!');
+});
+
+//Principal
 
 function realizarPregunta() {
+
+  rl.question(`¿Qué acción deseas realizar? (
+    listar
+    agregar
+    eliminar
+    completar
+    agregar
+    salir
+              
+    accion: `,
     
-    rl.question('¿Qué acción deseas realizar? (listar/agregar/eliminar/completar/salir): ', async (accion) => {
-      if (accion === 'listar') {
-        await listarTareas();
-        realizarPregunta()
-      } else if (accion === 'agregar') {
-        rl.question('Ingrese la descripción: ', async (descripcion) => {
-          await agregarTarea(descripcion);
-          await listarTareas();
-          realizarPregunta()
-        });
-      } else if (accion === 'eliminar') {
-        rl.question('Ingrese el número de la tarea que desea eliminar: ', async (indice) => {
-          await eliminarTarea(parseInt(indice) - 1);
-          await listarTareas();
-          realizarPregunta()
-        });
-      } else if (accion === 'completar') {
-        rl.question('Ingrese el número de la tarea que desea marcar como completada: ', async (indice) => {
-          await completarTarea(parseInt(indice) - 1);
-          await listarTareas();
-          realizarPregunta()
-        });
-      } else if (accion === 'salir') {
-        rl.close();
-      } else {
-        console.log('Acción no válida.');
-      }
+    async (accion) => {
 
-    });
-  };
+        if (accion === 'listar') {
+          const listar = await listarTareas();
+          console.log(listar)
+          await realizarPregunta()
+        } else if (accion === 'agregar') {
+          (function ingreso() { 
 
+            rl.question('Ingrese el id: ', async (id) => {
+            rl.question('Ingrese la descripcion: ', async (descripcion) => { 
+                try {
+                  const agregar = await agregarTarea(id,descripcion);
+                  console.log(agregar)
+                } catch (err) {
+                  console.log(err.message)
+                  ingreso()
+                }
+                await listarTareas();
+                realizarPregunta()
+              })
+            });
+          } )()
+        } else if (accion === 'eliminar') {
+          rl.question('Ingrese el número de la tarea que desea eliminar: ', async (indice) => {
+            try {
+              const eliminar = await eliminarTarea(parseInt(indice) - 1);
+              console.log(eliminar)
+            } catch (err) {
+              console.log(err.message)
+            }
+            await listarTareas();
+            await realizarPregunta()
+          });
+        } else if (accion === 'completar') {
+          rl.question('Ingrese el número de la tarea que desea marcar como completada: ', async (indice) => {
+             try {
+                const completar = await completarTarea(parseInt(indice) - 1);
+                console.log(completar)
+              } catch (err) {
+                console.log(err.message)
+              }
+            await listarTareas();
+            await realizarPregunta()
+          });
+        } else if (accion === 'salir') {
+          rl.close()
+        } else {
+          console.log('Acción no válida.');
+        }
 
+      });
+    
+};
+
+console.log(`Hola, Jose
+  Vamos a cumplir tus metas
+  `)
 realizarPregunta()
 
 
